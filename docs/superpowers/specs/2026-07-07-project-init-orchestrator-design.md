@@ -1,0 +1,176 @@
+# Project Init Orchestrator Design
+
+## Purpose
+
+Create a reusable dual-platform workflow package for Codex and Claude Code that forces every new project to begin with disciplined project initialization before implementation. The package should make a main agent establish the project goal, collect requirements, write project control documents, define subagent boundaries, start work logs, and then run an orchestrated loop until the project is complete or genuinely blocked.
+
+The workflow is intentionally strict. It should prefer early clarification and documented boundaries over fast implementation, because the main failure mode it prevents is agents coding before the project scope, acceptance criteria, and agent responsibilities are stable.
+
+## Target Users
+
+The primary user is an operator who wants Codex, Claude Code, or a similar agentic coding environment to start new projects in a repeatable way. The user expects to download or clone a GitHub repository, install the workflow, and then trigger it in a new project conversation.
+
+The secondary user is another agent. The written skill and command files must be explicit enough that a fresh agent can follow the process without relying on this conversation.
+
+## Deliverables
+
+The repository will include:
+
+1. A Codex Skill at `codex/project-init-orchestrator/SKILL.md`.
+2. Codex UI metadata at `codex/project-init-orchestrator/agents/openai.yaml`.
+3. A Claude Code command at `claude-code/commands/project-init-orchestrator.md`.
+4. Shared templates under `templates/`.
+5. An installation script at `install.sh`.
+6. A GitHub-facing `README.md`.
+7. Lightweight validation scripts or checks where useful.
+
+The Codex Skill is the primary executable workflow for Codex. The Claude Code command is the native Claude Code entrypoint for the same process. Shared templates ensure both platforms produce compatible project artifacts.
+
+## Workflow Contract
+
+When triggered in a project, the main agent must run this sequence:
+
+1. Create or confirm a persistent project goal. If a native goal mode exists, use it. If not, emulate goal mode by writing a persistent objective and loop state into the project work log.
+2. Enable a loop-style execution model: clarify, design, document, plan, execute, verify, review, and continue until completion or a proven blocker.
+3. Inspect the current project context before making assumptions.
+4. Invoke `superpowers:brainstorming` when available, and use its gate: no implementation before design approval.
+5. Ask the user focused project questions about purpose, target users, scope, constraints, success criteria, risks, integrations, and preferred operating mode.
+6. Generate or update project-level `AGENTS.md`.
+7. Generate a project spec under `docs/specs/`.
+8. Generate task planning and work log files.
+9. Define subagent roles and briefs before dispatching any subagent work.
+10. Keep subagents bounded by `AGENTS.md`, the project spec, and their assigned brief.
+11. Require all agents to record progress, decisions, blockers, and handoffs in work logs.
+12. Have the main agent integrate subagent results, resolve conflicts, update the plan, and continue the loop.
+13. Before declaring completion, run a requirement-by-requirement completion audit against the goal, spec, task list, tests, and generated artifacts.
+
+The workflow must not promise that every platform has identical runtime features. If native subagents, goal mode, or skill invocation are unavailable, the command must fall back to explicit role briefs and persistent logs while preserving the same discipline.
+
+## Generated Project Artifacts
+
+Each initialized project should receive these files unless the user or existing repository conventions require equivalent paths:
+
+- `AGENTS.md`: project constitution for all agents.
+- `docs/specs/<date>-project-spec.md`: requirements, architecture, scope, risks, acceptance criteria, and test strategy.
+- `docs/worklogs/main-worklog.md`: main-agent loop state, decisions, progress, and completion audit.
+- `docs/worklogs/subagents/<role>-worklog.md`: one log per subagent role.
+- `docs/agents/subagent-briefs/<role>.md`: scoped work packet for each subagent.
+- `docs/tasks/project-tasks.md`: task breakdown with owners, status, dependencies, and verification evidence.
+
+## AGENTS.md Requirements
+
+The generated `AGENTS.md` must define:
+
+- Project goal and non-goals.
+- Technology stack and local commands once discovered.
+- Directory ownership and allowed edit zones.
+- Coding, testing, documentation, and review standards.
+- Main-agent responsibilities.
+- Subagent role boundaries.
+- Required work log behavior.
+- Decision and escalation rules.
+- Forbidden behaviors, including scope expansion, undocumented architectural changes, and edits outside assigned ownership.
+
+## Spec Requirements
+
+The project spec must define:
+
+- Background and problem statement.
+- Target users and core use cases.
+- In-scope and out-of-scope work.
+- Functional requirements.
+- Non-functional requirements.
+- Architecture and module boundaries.
+- Data flow and external dependencies.
+- Error handling and edge cases.
+- Testing and verification strategy.
+- Acceptance criteria.
+- Risks, assumptions, and open questions.
+
+The spec must be reviewed for placeholders, contradictions, ambiguous requirements, and uncontrolled scope before implementation begins.
+
+## Subagent Collaboration Model
+
+The main agent owns orchestration. It decides when to create or simulate subagents, writes each brief, checks their outputs, and merges their findings into the project plan.
+
+Each subagent must receive:
+
+- A role name.
+- A precise objective.
+- Allowed files and directories.
+- Forbidden files and decisions.
+- Required inputs.
+- Expected outputs.
+- Required verification.
+- Work log location.
+- Handoff requirements.
+
+Subagents may collaborate through shared work logs and explicit handoffs. They may not silently modify another role's area or broaden the project scope.
+
+## Loop Model
+
+The loop should be persistent and documented:
+
+1. Read current goal, spec, tasks, and work logs.
+2. Identify the next highest-value step.
+3. Dispatch or execute bounded work.
+4. Record decisions and evidence.
+5. Verify the result.
+6. Update tasks and logs.
+7. Continue until the completion audit passes or a blocker is proven.
+
+The loop must avoid asking the user to manually drive routine next steps after the project details have been gathered. User input is required only when the missing information changes scope, risk, product direction, credentials, external access, or acceptance criteria.
+
+## Installation Design
+
+The repository will support both manual and scripted installation.
+
+The `install.sh` script will:
+
+- Detect the repository root.
+- Install the Codex Skill into `${CODEX_HOME:-$HOME/.codex}/skills/project-init-orchestrator`.
+- Install the Claude Code command into `$HOME/.claude/commands/project-init-orchestrator.md`.
+- Create destination directories if needed.
+- Preserve source files in the repository.
+- Print installed paths and trigger examples.
+
+Manual installation will remain possible by copying the same directories and files.
+
+## README Scope
+
+The repository `README.md` will explain:
+
+- What the workflow does.
+- What it installs.
+- How to install it.
+- How to trigger it in Codex and Claude Code.
+- What files it creates in a target project.
+- How goal mode, loop mode, subagent boundaries, and work logs behave.
+- Platform limitations and fallbacks.
+
+## Validation
+
+Validation should prove:
+
+- The Codex Skill has valid frontmatter and can pass the bundled skill validator.
+- Required files exist in the expected repository paths.
+- The installer can run in dry-run or temporary-home mode without damaging the user's real installation.
+- The templates include the required sections for goal mode, loop mode, specs, subagent briefs, and work logs.
+
+## Open Decisions
+
+The first version will use English file content for broader GitHub reuse, while the workflow remains suitable for Chinese-language project conversations. Future versions may add bilingual templates.
+
+The first version will not implement a separate runtime binary. The behavior lives in platform-native instruction files plus templates and an installer.
+
+## Acceptance Criteria
+
+The goal is complete when:
+
+1. The repository contains the Codex Skill, Claude Code command, templates, installer, and README.
+2. The Codex Skill instructs the main agent to use goal mode, loop execution, `superpowers:brainstorming`, `AGENTS.md`, specs, bounded subagents, work logs, and completion audits.
+3. The Claude Code command provides the same workflow in Claude Code-native form.
+4. Templates exist for all project artifacts the workflow creates.
+5. Installation is documented and executable.
+6. Validation commands pass.
+7. A completion audit confirms every requirement in this design has evidence in the current repository.
