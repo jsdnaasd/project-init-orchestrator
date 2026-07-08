@@ -1,47 +1,67 @@
 # Project Init Orchestrator
 
-Project Init Orchestrator is a reusable workflow package for starting coding projects with disciplined agent coordination before implementation.
+> A disciplined startup workflow for Codex, Claude Code, and multi-agent coding projects.
 
-It installs:
+`Project Init Orchestrator` helps an AI coding agent start a project the right way: define the goal, ask the important questions, write `AGENTS.md`, create a spec, assign bounded subagents, maintain work logs, and keep moving through a documented loop until the work is complete.
 
-- A Codex Skill: `project-init-orchestrator`
-- A Claude Code command: `/project-init-orchestrator`
-- Shared project templates for `AGENTS.md`, specs, tasks, work logs, subagent briefs, and completion audits
+It is built for people who do not want an agent to jump straight into coding before the project has clear scope, boundaries, acceptance criteria, and collaboration rules.
 
-The workflow is strict by design. It makes the main agent establish a goal, ask project questions, write control documents, define subagent boundaries, and then continue through a documented loop until the work is complete or genuinely blocked.
+## Why This Exists
 
-## What It Creates In A Target Project
+Agentic coding breaks down when the first few minutes are messy:
 
-When triggered in a project, the workflow creates or updates:
+- The agent starts implementation before requirements are clear.
+- Subagents overlap, duplicate work, or edit outside their scope.
+- There is no durable `AGENTS.md`.
+- The spec is missing, vague, or never reviewed.
+- Progress lives only in chat history.
+- The user has to keep manually pushing the agent after every step.
 
-- `AGENTS.md`
-- `docs/specs/<YYYY-MM-DD>-project-spec.md`
-- `docs/tasks/project-tasks.md`
-- `docs/worklogs/main-worklog.md`
-- `docs/worklogs/subagents/<role>-worklog.md`
-- `docs/agents/subagent-briefs/<role>.md`
-- `docs/completion-audit.md` or an equivalent final audit file
+This project turns project startup into a repeatable operating system.
 
-## Core Behavior
+## What It Installs
 
-The main agent must:
+| Platform | Installed Artifact | Purpose |
+| --- | --- | --- |
+| Codex | `project-init-orchestrator` Skill | Native Codex workflow entrypoint |
+| Claude Code | `/project-init-orchestrator` command | Native Claude Code command |
+| Shared | Project templates | `AGENTS.md`, spec, tasks, logs, subagent briefs, audit |
 
-1. Create or confirm goal mode.
-2. Inspect the current project.
+## Core Workflow
+
+When triggered, the main agent must:
+
+1. Establish or emulate goal mode.
+2. Inspect the current repository.
 3. Use `superpowers:brainstorming` when available.
-4. Ask focused project questions before implementation.
-5. Write `AGENTS.md`.
+4. Ask focused questions before implementation.
+5. Write or update `AGENTS.md`.
 6. Write a project spec.
-7. Create tasks, work logs, and subagent briefs.
-8. Keep subagents bounded by their briefs.
-9. Run a loop: clarify, design, document, plan, execute, verify, review, continue.
-10. Complete only after a requirement-by-requirement audit has evidence.
+7. Create a task plan.
+8. Define bounded subagent briefs.
+9. Maintain main-agent and subagent work logs.
+10. Run a loop: clarify, design, document, plan, execute, verify, review, continue.
+11. Complete only after a requirement-by-requirement audit has evidence.
 
-If a platform has no native goal mode, the workflow emulates goal mode in `docs/worklogs/main-worklog.md`. If native subagents are unavailable, the main agent simulates subagent roles with separate briefs and work logs.
+The workflow is intentionally strict. It favors a clean start over fast but fragile implementation.
+
+## Generated Project Files
+
+In a target project, the workflow creates or updates:
+
+```text
+AGENTS.md
+docs/specs/<YYYY-MM-DD>-project-spec.md
+docs/tasks/project-tasks.md
+docs/worklogs/main-worklog.md
+docs/worklogs/subagents/<role>-worklog.md
+docs/agents/subagent-briefs/<role>.md
+docs/completion-audit.md
+```
 
 ## Install
 
-Clone the repository, then run:
+Clone this repository, then run:
 
 ```bash
 ./install.sh
@@ -53,7 +73,7 @@ The installer copies:
 - Claude Code command to `$HOME/.claude/commands/project-init-orchestrator.md`
 - Shared templates to `$HOME/.project-init-orchestrator/templates`
 
-To preview without writing files:
+Preview the installation without writing files:
 
 ```bash
 DRY_RUN=1 ./install.sh
@@ -61,64 +81,64 @@ DRY_RUN=1 ./install.sh
 
 ## Manual Install
 
-Codex:
+Install the Codex Skill:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R codex/project-init-orchestrator "${CODEX_HOME:-$HOME/.codex}/skills/project-init-orchestrator"
 ```
 
-Claude Code:
+Install the Claude Code command:
 
 ```bash
 mkdir -p "$HOME/.claude/commands"
 cp claude-code/commands/project-init-orchestrator.md "$HOME/.claude/commands/project-init-orchestrator.md"
 ```
 
-Shared templates:
+Install shared templates:
 
 ```bash
 mkdir -p "$HOME/.project-init-orchestrator"
 cp -R templates "$HOME/.project-init-orchestrator/templates"
 ```
 
-## Trigger In Codex
+## Use In Codex
 
-Use a prompt like:
+Start a new project conversation and say:
 
 ```text
 Use $project-init-orchestrator to initialize this project with goals, specs, AGENTS.md, bounded subagents, and work logs.
 ```
 
-## Trigger In Claude Code
+## Use In Claude Code
 
-Use:
+Run:
 
 ```text
 /project-init-orchestrator initialize this project
 ```
 
-## Template Files
+## Templates
 
 The `templates/` directory contains:
 
 - `AGENTS.md`: project constitution for all agents
-- `SPEC.md`: project spec structure
-- `TASKS.md`: task tracking with owner, status, dependency, and evidence fields
-- `WORKLOG.md`: persistent goal and loop state plus progress entries
-- `SUBAGENT_BRIEF.md`: bounded subagent assignment
-- `COMPLETION_AUDIT.md`: final evidence review
+- `SPEC.md`: project requirements, architecture, risks, and acceptance criteria
+- `TASKS.md`: task ownership, status, dependencies, and evidence
+- `WORKLOG.md`: persistent goal state, loop state, decisions, blockers, and progress
+- `SUBAGENT_BRIEF.md`: scoped assignment for each subagent
+- `COMPLETION_AUDIT.md`: final evidence review before completion
 
-## Platform Limits
+## Platform Fallbacks
 
-Codex and Claude Code do not always expose the same tools. This package preserves the workflow contract even when a feature is missing:
+Codex and Claude Code do not always expose identical runtime tools. The workflow keeps the same discipline with fallbacks:
 
-- No native goal mode: write persistent goal state in the main work log.
-- No native subagents: simulate role-bounded passes with separate briefs and logs.
+- No native goal mode: write persistent goal state in `docs/worklogs/main-worklog.md`.
+- No native subagents: simulate bounded roles with briefs and logs.
 - No brainstorming skill: perform manual clarification and design gating.
-- No tests yet: record available verification and add test setup tasks when required.
+- No tests yet: record available verification and create test setup tasks when needed.
 
-## Validate This Repository
+## Validate
 
 Run:
 
@@ -126,8 +146,16 @@ Run:
 python3 scripts/validate_repository.py
 ```
 
-To validate the Codex Skill with the bundled skill validator, run it in a Python environment that has PyYAML installed:
+Validate the Codex Skill with the bundled skill validator in a Python environment that has PyYAML:
 
 ```bash
 python3 /Users/Zhuanz1/.codex/skills/.system/skill-creator/scripts/quick_validate.py codex/project-init-orchestrator
 ```
+
+## Project Philosophy
+
+This workflow treats project initialization as part of engineering quality.
+
+Good agents should not only write code. They should preserve intent, respect boundaries, record decisions, coordinate collaborators, and prove completion with evidence.
+
+`Project Init Orchestrator` gives them the structure to do that from the first message.
