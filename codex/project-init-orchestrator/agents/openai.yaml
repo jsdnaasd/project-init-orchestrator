@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Init Orchestrator"
+  short_description: "Disciplined multi-agent project startup"
+  default_prompt: "Use $project-init-orchestrator to initialize this project with goals, specs, AGENTS.md, bounded subagents, and work logs."
