@@ -30,7 +30,7 @@ Release verification:
 - [x] Codex Skill quick validator passes.
 - [x] Temporary installation and installed CLI smoke test pass.
 - [x] Git diff review excludes unrelated game, app, resume, output, and `.gitignore` changes.
-- [ ] GitHub CI passes on `main`; verify after push before publishing the release.
+- [x] GitHub CI passes on `main` for Python 3.10, 3.12, and 3.14.
 
 ## Capability Boundaries
 
