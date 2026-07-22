@@ -1,0 +1,69 @@
+{
+  "tool_version": "0.2.0",
+  "scenario_count": 10,
+  "passed_count": 10,
+  "success_rate": 1.0,
+  "boundary_detection_rate": 1.0,
+  "results": [
+    {
+      "name": "empty-initialization",
+      "category": "initialization",
+      "passed": true,
+      "detail": "All required control and state artifacts were created."
+    },
+    {
+      "name": "idempotent-rerun",
+      "category": "idempotency",
+      "passed": true,
+      "detail": "A second run produced no file changes."
+    },
+    {
+      "name": "preserve-existing-agents",
+      "category": "idempotency",
+      "passed": true,
+      "detail": "Existing AGENTS.md content was preserved byte-for-byte."
+    },
+    {
+      "name": "invalid-transition",
+      "category": "state-machine",
+      "passed": true,
+      "detail": "The initialized-to-complete shortcut was rejected."
+    },
+    {
+      "name": "allowed-boundary",
+      "category": "boundary-audit",
+      "passed": true,
+      "detail": "A change inside src/** passed the role audit."
+    },
+    {
+      "name": "forbidden-boundary",
+      "category": "boundary-audit",
+      "passed": true,
+      "detail": "A forbidden sensitive path was detected."
+    },
+    {
+      "name": "outside-scope",
+      "category": "boundary-audit",
+      "passed": true,
+      "detail": "A change outside src/** was detected."
+    },
+    {
+      "name": "readiness-gate",
+      "category": "validation",
+      "passed": true,
+      "detail": "Unresolved requirements prevented implementation readiness."
+    },
+    {
+      "name": "read-only-inspection",
+      "category": "inspection",
+      "passed": true,
+      "detail": "Inspection detected Python and performed no writes."
+    },
+    {
+      "name": "context-snapshot",
+      "category": "context",
+      "passed": true,
+      "detail": "A two-event source log produced a concise recoverable snapshot."
+    }
+  ]
+}

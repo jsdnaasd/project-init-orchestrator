@@ -1,4 +1,4 @@
 interface:
   display_name: "Project Init Orchestrator"
-  short_description: "Disciplined multi-agent project startup"
-  default_prompt: "Use $project-init-orchestrator to initialize this project with goals, specs, AGENTS.md, bounded subagents, and work logs."
+  short_description: "Executable Codex project startup and guardrails"
+  default_prompt: "Use $project-init-orchestrator to inspect and initialize this project, clarify the design, create bounded roles, and continue through verified completion."

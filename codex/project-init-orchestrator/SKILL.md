@@ -1,184 +1,114 @@
 ---
 name: project-init-orchestrator
-description: Disciplined project initialization workflow for new or restarted coding projects. Use when the user wants Codex to set up a project before implementation, create AGENTS.md, write specs, enable goal/loop execution, coordinate bounded subagents, maintain work logs, or establish a reusable multi-agent project workflow.
+description: Initialize and govern new or restarted Codex projects with an executable goal/loop workflow, AGENTS.md, reviewed specs, persistent state, bounded subagent briefs, path policies, work logs, context snapshots, validation gates, and completion evidence. Use when the user asks Codex to set up a project before implementation, clarify requirements, create project control documents, coordinate subagents, prevent scope violations, resume a long-running project, or audit whether work is actually complete.
 ---
 
 # Project Init Orchestrator
 
-Use this skill to initialize a project before implementation. The goal is to make the main agent create durable project control documents, ask the right questions, define agent boundaries, and then run a documented loop until the project is complete or genuinely blocked.
+Initialize the project with the bundled CLI, then use Codex for requirement reasoning and bounded execution. Treat CLI failures as workflow failures; do not replace deterministic checks with prose.
 
 ## Hard Rules
 
-1. Do not start implementation before the project goal, project spec, task plan, and agent boundaries are documented.
-2. Create or confirm a persistent goal at the start. If native goal mode exists, use it. If it does not exist, emulate goal mode in `docs/worklogs/main-worklog.md`.
-3. Use loop execution after the initial questions are answered: clarify, design, document, plan, execute, verify, review, and continue.
-4. Use `superpowers:brainstorming` when it is available. Follow its gate: no implementation before design approval.
-5. Do not dispatch or simulate subagents until each subagent has a written brief with scope, allowed files, forbidden files, expected output, verification, and work log location.
-6. Require every agent, including the main agent, to write progress, decisions, blockers, and handoffs to work logs.
-7. Treat `AGENTS.md`, the project spec, and the assigned subagent brief as binding instructions for subagent scope.
-8. Before declaring completion, run a requirement-by-requirement audit against the goal, spec, task list, tests, and produced artifacts.
+1. Do not implement before the objective, approved design, spec, task plan, and role boundaries exist.
+2. Create a native main goal when the host exposes goal tools. Always mirror durable state through the CLI.
+3. Give every delegated role a logical goal, brief, path policy, work log, baseline, and post-work audit.
+4. Use `superpowers:brainstorming` when installed. Otherwise use [references/workflow.md](references/workflow.md) and record the fallback.
+5. Never treat a simulated role pass as native parallel subagent execution.
+6. Never claim completion while `validate --stage complete` fails.
 
-## Initialization Sequence
+## Locate The CLI
 
-Run these steps in order.
+Set the absolute path to this Skill's script:
 
-### 1. Inspect Context
+```bash
+PIO="<this-skill-directory>/scripts/pio.py"
+python3 "$PIO" --version
+```
 
-Read the current repository state before asking detailed questions:
+Read [references/cli.md](references/cli.md) when exact command syntax is needed.
 
-- Current working directory and Git status.
-- Existing `AGENTS.md`, `CLAUDE.md`, specs, README files, package manifests, test configs, and source layout.
-- Recent commits when available.
-- Existing project conventions that should override the default templates.
+## Initialize
 
-If the project is empty, say so and continue with the default artifact paths.
+Run inspection before asking repository-specific questions:
 
-### 2. Establish Goal Mode
+```bash
+python3 "$PIO" inspect --project .
+```
 
-Create or confirm the project goal before writing implementation code.
+Create the native goal when available. Then initialize persistent state with the user's actual objective. Do not weaken the objective to match partial progress.
 
-If a native goal tool is available, create a goal with the user's actual objective and keep it active until completion. If no native goal tool exists, write the goal state into `docs/worklogs/main-worklog.md` with:
+```bash
+python3 "$PIO" init --project . --name "<project name>" --objective "<objective>"
+python3 "$PIO" validate --project . --stage structure
+python3 "$PIO" transition clarify --project .
+```
 
-- Objective.
-- Current phase.
-- Loop status.
-- Last verified state.
-- Next step.
-- Blockers.
-- Completion evidence.
+Initialization preserves existing files. Inspect preserved artifacts and merge requirements deliberately instead of overwriting them.
 
-Do not redefine the goal to match partial progress.
+## Clarify And Approve Design
 
-### 3. Clarify Requirements
+Read [references/workflow.md](references/workflow.md). Ask one focused question at a time until purpose, users, workflows, scope, constraints, integrations, risk, success measures, and acceptance evidence are clear.
 
-Use `superpowers:brainstorming` when available. Ask focused questions one at a time until the following are clear enough to write a spec:
+Present the proposed design and obtain approval. Fill all TODO markers in `AGENTS.md`, the spec, and task plan. Record decisions:
 
-- Project purpose.
-- Target users.
-- Core workflows.
-- In-scope work.
-- Out-of-scope work.
-- Technical constraints.
-- Integrations and external services.
-- Success criteria.
-- Acceptance tests or verification evidence.
-- Risks, sensitive operations, credentials, or approvals.
-- Preferred degree of autonomy after initialization.
+```bash
+python3 "$PIO" log --project . --type decision --actor main --message "<decision>"
+python3 "$PIO" transition spec --project .
+python3 "$PIO" transition plan --project .
+```
 
-After the user answers the core questions, avoid making them manually drive routine next steps. Continue through the loop unless a later decision affects scope, risk, credentials, external access, product direction, or acceptance criteria.
+Ask again only when a missing decision changes scope, product direction, risk, credentials, external access, or acceptance criteria.
 
-### 4. Create Project Artifacts
+## Create Bounded Roles
 
-Create or update these artifacts unless the repository already has equivalent files:
+Create only roles justified by independent work or review. For every role:
 
-- `AGENTS.md`
-- `docs/specs/<YYYY-MM-DD>-project-spec.md`
-- `docs/tasks/project-tasks.md`
-- `docs/worklogs/main-worklog.md`
-- `docs/worklogs/subagents/<role>-worklog.md` for each planned subagent role
-- `docs/agents/subagent-briefs/<role>.md` for each planned subagent role
+```bash
+python3 "$PIO" add-role <role> --project .
+python3 "$PIO" set-policy <role> --project . --allow '<path/**>' --forbid '<sensitive/**>'
+python3 "$PIO" baseline <role> --project .
+```
 
-Use repository conventions when they are clearer than these default paths, but record any path changes in `AGENTS.md` and the main work log.
+Complete the generated brief before dispatch. Give the role the current `AGENTS.md`, spec, task, `.project-init-orchestrator/snapshot.md`, and relevant logs.
 
-### 5. Write AGENTS.md
+After delegated work returns, run:
 
-`AGENTS.md` must define:
+```bash
+python3 "$PIO" audit <role> --project .
+```
 
-- Project goal and non-goals.
-- Repository structure and directory responsibilities.
-- Technology stack and local commands discovered so far.
-- Coding, testing, documentation, review, and security standards.
-- Main-agent responsibilities.
-- Subagent roles and boundaries.
-- Allowed edit zones.
-- Forbidden edit zones.
-- Work log requirements.
-- Decision and escalation rules.
-- Completion audit requirements.
+Investigate every forbidden or out-of-scope path before integrating output.
 
-Make forbidden behavior explicit: no scope expansion, no undocumented architectural changes, no edits outside assigned ownership, no silent changes to another agent's area, and no completion claim without evidence.
+## Run The Loop
 
-### 6. Write The Project Spec
+Before implementation, require:
 
-The spec must include:
+```bash
+python3 "$PIO" validate --project . --stage ready
+python3 "$PIO" transition execute --project .
+```
 
-- Background and problem statement.
-- Target users and core use cases.
-- Scope and non-scope.
-- Functional requirements.
-- Non-functional requirements.
-- Architecture and module boundaries.
-- Data flow and external dependencies.
-- Error handling and edge cases.
-- Testing and verification strategy.
-- Acceptance criteria.
-- Risks, assumptions, and open questions.
+Repeat until complete:
 
-Self-review the spec before implementation. Fix placeholders, contradictions, ambiguous requirements, and uncontrolled scope.
+1. Read goal state, spec, tasks, snapshot, and work logs.
+2. Select the highest-value dependency-ready task.
+3. Execute directly or dispatch a bounded role.
+4. Log progress, decisions, blockers, verification, and handoffs.
+5. Run tests and role boundary audits.
+6. Transition to `verify` with concrete evidence.
+7. Return to `execute` on failure or advance to `audit` on success.
+8. Continue without asking the user to drive routine steps.
 
-### 7. Plan Work And Subagents
+Use `block` only for a genuine blocker and `unblock` after resolution. Use `compact` after long phases; it preserves the full event log while regenerating a concise snapshot.
 
-Create `docs/tasks/project-tasks.md` with:
+## Complete
 
-- Task id.
-- Owner.
-- Status.
-- Dependencies.
-- Files or directories in scope.
-- Verification command or evidence.
-- Work log link.
+Audit every explicit requirement against direct evidence. Complete `docs/completion-audit.md`, then run:
 
-Create each subagent brief with:
+```bash
+python3 "$PIO" transition audit --project . --evidence "<verification summary>"
+python3 "$PIO" transition complete --project . --evidence "<audit summary>"
+python3 "$PIO" validate --project . --stage complete
+```
 
-- Role name.
-- Objective.
-- Inputs.
-- Allowed files and directories.
-- Forbidden files and decisions.
-- Required output.
-- Verification requirements.
-- Work log path.
-- Handoff requirements.
-
-Subagents may communicate through work logs and explicit handoffs. They may not broaden scope or edit outside their assigned area.
-
-### 8. Run The Orchestration Loop
-
-Repeat until completion or a proven blocker:
-
-1. Read goal state, spec, task list, and work logs.
-2. Select the next highest-value task.
-3. Execute directly or dispatch a bounded subagent.
-4. Record decisions, changes, blockers, and evidence.
-5. Verify the result with tests, commands, review, or artifact inspection.
-6. Update task status and logs.
-7. Integrate subagent outputs.
-8. Continue without asking the user to drive routine next steps.
-
-Ask the user only when the missing information changes project scope, risk, product direction, credentials, external access, or acceptance criteria.
-
-### 9. Completion Audit
-
-Before final response, audit every explicit requirement:
-
-- Goal objective.
-- `AGENTS.md` rules.
-- Spec acceptance criteria.
-- Task list.
-- Subagent brief outputs.
-- Test and verification commands.
-- Generated artifacts.
-- User instructions from the conversation.
-
-For each item, identify concrete evidence from files, command output, tests, rendered artifacts, or logs. Treat uncertain or indirect evidence as incomplete. Continue working if any required item is missing.
-
-## Platform Fallbacks
-
-- If native goal mode is unavailable, emulate it in the main work log.
-- If native subagents are unavailable, simulate subagent roles with separate briefs, logs, and bounded passes performed by the main agent.
-- If `superpowers:brainstorming` is unavailable, follow the clarification and design gate manually and record that fallback in the work log.
-- If the repository cannot run tests yet, record what verification was possible and what must be added.
-
-## Template Use
-
-When this skill is used from the full GitHub package, prefer the templates in the repository `templates/` directory. When installed with `install.sh`, shared templates are copied to `$HOME/.project-init-orchestrator/templates`. If the templates are unavailable after installation, generate files that contain the same sections listed in this skill.
+If validation fails, continue the loop. Report native capability limitations honestly in the final response.
